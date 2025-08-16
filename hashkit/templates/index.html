@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HashKit Web</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #E2E8F0; /* Light gray text for better contrast on dark background */
+            /* Inspired by the provided image's color palette */
+            background: linear-gradient(135deg, #212838 0%, #08C6AB 50%, #726EFF 100%);
+        }
+        .main-card {
+            background-color: rgba(33, 40, 56, 0.8); /* Dark, semi-transparent background */
+            backdrop-filter: blur(10px); /* Frosted glass effect */
+        }
+        .btn-green {
+            background-color: #08C6AB;
+            color: #212838;
+        }
+        .btn-blue {
+            background-color: #726EFF;
+            color: #212838;
+        }
+        .btn-red {
+            background-color: #E74C3C;
+            color: #fff;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="main-card rounded-2xl shadow-xl p-8 max-w-2xl w-full border border-gray-700">
+        <h1 class="text-3xl font-bold text-center mb-2">HashKit Web</h1>
+        <p class="text-center mb-8 text-sm text-gray-400">A comprehensive web interface for ethical hash analysis.</p>
+
+        <!-- Main Form for Identification & Cracking -->
+        <div class="bg-gray-800 bg-opacity-50 rounded-lg p-6 mb-8 border border-gray-700">
+            <h2 class="text-xl font-semibold mb-4 text-gray-300">Hash Operations</h2>
+            <form id="hashkit-form" class="space-y-4">
+                <div>
+                    <label for="hash-input" class="block text-sm font-medium text-gray-400">Hash Value</label>
+                    <input type="text" id="hash-input" name="hash_value" placeholder="e.g., 5d41402abc4b2a76b9719d911017c592" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-900 text-gray-200 shadow-sm focus:border-indigo-400 focus:ring-indigo-400 sm:text-sm p-3 transition duration-300">
+                </div>
+                <div>
+                    <label for="action-select" class="block text-sm font-medium text-gray-400">Action</label>
+                    <select id="action-select" name="action" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-900 text-gray-200 shadow-sm focus:border-indigo-400 focus:ring-indigo-400 sm:text-sm p-3 transition duration-300">
+                        <option value="identify">Identify Hash</option>
+                        <option value="crack">Crack Hash</option>
+                    </select>
+                </div>
+
+                <!-- Cracking Options Section -->
+                <div id="crack-options" class="hidden">
+                    <div>
+                        <label for="mode-select" class="block text-sm font-medium text-gray-400">Attack Mode</label>
+                        <select id="mode-select" name="mode" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-900 text-gray-200 shadow-sm focus:border-indigo-400 focus:ring-indigo-400 sm:text-sm p-3 transition duration-300">
+                            <option value="dictionary">Dictionary Attack</option>
+                            <option value="bruteforce">Brute Force Attack</option>
+                            <option value="mask">Mask Attack</option>
+                        </select>
+                    </div>
+
+                    <!-- Dictionary Attack Fields -->
+                    <div id="dictionary-fields">
+                        <label for="wordlist-textarea" class="block text-sm font-medium text-gray-400">Wordlist (one entry per line)</label>
+                        <textarea id="wordlist-textarea" name="wordlist_text" rows="5" placeholder="Enter custom wordlist or leave blank for a default list." class="mt-1 block w-full rounded-md border-gray-600 bg-gray-900 text-gray-200 shadow-sm focus:border-indigo-400 focus:ring-indigo-400 sm:text-sm p-3 transition duration-300"></textarea>
+                    </div>
+
+                    <!-- Brute Force Fields -->
+                    <div id="bruteforce-fields" class="hidden">
+                        <label for="max-length-input" class="block text-sm font-medium text-gray-400">Max Length</label>
+                        <input type="number" id="max-length-input" name="max_length" placeholder="e.g., 6" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-900 text-gray-200 shadow-sm focus:border-indigo-400 focus:ring-indigo-400 sm:text-sm p-3 transition duration-300">
+                    </div>
+
+                    <!-- Mask Attack Fields -->
+                    <div id="mask-fields" class="hidden">
+                        <label for="mask-input" class="block text-sm font-medium text-gray-400">Mask</label>
+                        <input type="text" id="mask-input" name="mask" placeholder="e.g., ?l?l?l?d?d" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-900 text-gray-200 shadow-sm focus:border-indigo-400 focus:ring-indigo-400 sm:text-sm p-3 transition duration-300"></textarea>
+                    </div>
+
+                    <!-- Thread Count Field -->
+                    <div>
+                        <label for="threads-input" class="block text-sm font-medium text-gray-400">Threads (optional)</label>
+                        <input type="number" id="threads-input" name="threads" placeholder="e.g., 8" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-900 text-gray-200 shadow-sm focus:border-indigo-400 focus:ring-indigo-400 sm:text-sm p-3 transition duration-300">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium btn-blue hover:btn-green transition duration-300">
+                    Process Hash
+                </button>
+            </form>
+        </div>
+
+        <!-- Wordlist Management Section -->
+        <div class="bg-gray-800 bg-opacity-50 rounded-lg p-6 mb-8 border border-gray-700">
+            <h2 class="text-xl font-semibold mb-4 text-gray-300">Wordlist Management</h2>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <button type="button" id="list-wordlists" class="flex-1 justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium btn-green transition duration-300">
+                    List Wordlists
+                </button>
+                <button type="button" id="download-wordlist" class="flex-1 justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium btn-blue transition duration-300">
+                    Download 'rockyou'
+                </button>
+                <button type="button" id="clear-wordlists" class="flex-1 justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium btn-red transition duration-300">
+                    Clear All
+                </button>
+            </div>
+        </div>
+        
+        <!-- Results & Loading Section -->
+        <div id="results-container" class="mt-6 p-6 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg shadow-inner hidden">
+            <h2 class="text-lg font-semibold text-gray-300 mb-2">Results:</h2>
+            <pre id="results-output" class="text-gray-400 text-sm whitespace-pre-wrap font-mono"></pre>
+        </div>
+
+        <div id="loading-spinner" class="mt-6 text-center hidden">
+            <svg class="animate-spin h-10 w-10 text-indigo-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const form = document.getElementById('hashkit-form');
+        const actionSelect = document.getElementById('action-select');
+        const crackOptions = document.getElementById('crack-options');
+        const modeSelect = document.getElementById('mode-select');
+        const dictionaryFields = document.getElementById('dictionary-fields');
+        const bruteforceFields = document.getElementById('bruteforce-fields');
+        const maskFields = document.getElementById('mask-fields');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const resultsContainer = document.getElementById('results-container');
+        const resultsOutput = document.getElementById('results-output');
+
+        const listWordlistsBtn = document.getElementById('list-wordlists');
+        const downloadWordlistBtn = document.getElementById('download-wordlist');
+        const clearWordlistsBtn = document.getElementById('clear-wordlists');
+
+        // Helper function to set loading state
+        function setLoading(isLoading) {
+            if (isLoading) {
+                resultsContainer.classList.add('hidden');
+                loadingSpinner.classList.remove('hidden');
+                resultsOutput.textContent = '';
+            } else {
+                loadingSpinner.classList.add('hidden');
+                resultsContainer.classList.remove('hidden');
+            }
+        }
+
+        // Handle main form submission (Identify & Crack)
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setLoading(true);
+
+            const hashValue = document.getElementById('hash-input').value;
+            const action = actionSelect.value;
+            const payload = {
+                hash_value: hashValue,
+                action: action,
+                threads: document.getElementById('threads-input').value || null
+            };
+
+            if (action === 'crack') {
+                const mode = modeSelect.value;
+                payload.mode = mode;
+                if (mode === 'dictionary') {
+                    payload.wordlist_text = document.getElementById('wordlist-textarea').value;
+                } else if (mode === 'bruteforce') {
+                    payload.max_length = document.getElementById('max-length-input').value;
+                } else if (mode === 'mask') {
+                    payload.mask = document.getElementById('mask-input').value;
+                }
+            }
+
+            try {
+                const response = await fetch('/api/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    resultsOutput.textContent = data.results;
+                } else {
+                    resultsOutput.textContent = `Error: ${data.message}`;
+                }
+            } catch (error) {
+                resultsOutput.textContent = `Network Error: Could not connect to the server.`;
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // Event listeners for wordlist management buttons
+        listWordlistsBtn.addEventListener('click', async () => {
+            setLoading(true);
+            try {
+                const response = await fetch('/api/wordlist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'list' })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    resultsOutput.textContent = `Available Wordlists:\n${data.results}`;
+                } else {
+                    resultsOutput.textContent = `Error: ${data.message}`;
+                }
+            } catch (error) {
+                resultsOutput.textContent = `Network Error: Could not connect to the server.`;
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        downloadWordlistBtn.addEventListener('click', async () => {
+            setLoading(true);
+            try {
+                const response = await fetch('/api/wordlist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'download', wordlist_name: 'rockyou' })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    resultsOutput.textContent = data.results;
+                } else {
+                    resultsOutput.textContent = `Error: ${data.message}`;
+                }
+            } catch (error) {
+                resultsOutput.textContent = `Network Error: Could not connect to the server.`;
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        clearWordlistsBtn.addEventListener('click', async () => {
+            setLoading(true);
+            try {
+                const response = await fetch('/api/wordlist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'clear' })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    resultsOutput.textContent = data.results;
+                } else {
+                    resultsOutput.textContent = `Error: ${data.message}`;
+                }
+            } catch (error) {
+                resultsOutput.textContent = `Network Error: Could not connect to the server.`;
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // Toggle UI based on user selection
+        actionSelect.addEventListener('change', () => {
+            if (actionSelect.value === 'crack') {
+                crackOptions.classList.remove('hidden');
+                // Trigger mode change to show correct fields
+                modeSelect.dispatchEvent(new Event('change'));
+            } else {
+                crackOptions.classList.add('hidden');
+            }
+        });
+
+        modeSelect.addEventListener('change', () => {
+            const mode = modeSelect.value;
+            // Hide all mode-specific fields first
+            dictionaryFields.classList.add('hidden');
+            bruteforceFields.classList.add('hidden');
+            maskFields.classList.add('hidden');
+
+            // Show the fields for the selected mode
+            if (mode === 'dictionary') {
+                dictionaryFields.classList.remove('hidden');
+            } else if (mode === 'bruteforce') {
+                bruteforceFields.classList.remove('hidden');
+            } else if (mode === 'mask') {
+                maskFields.classList.remove('hidden');
+            }
+        });
+
+        // Initialize the UI on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            actionSelect.dispatchEvent(new Event('change'));
+        });
+    </script>
+</body>
+</html>
