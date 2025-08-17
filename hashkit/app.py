@@ -67,7 +67,8 @@ def process():
                 # Handle different attack modes by building command arguments.
                 if mode == 'dictionary':
                     wordlist_text = data.get('wordlist_text', '').strip()
-                    temp_wordlist_path = 'temp_wordlist.txt'
+                    # A robust fix for local testing and deployment: use os.path.join for platform-independent paths.
+                    temp_wordlist_path = os.path.join(app.root_path, 'temp_wordlist.txt')
                     if not wordlist_text:
                         wordlist_text = "password\n123456\nqwerty\nadmin"
                     with open(temp_wordlist_path, 'w') as f:
@@ -110,6 +111,7 @@ def wordlist_management():
             
             results = ""
             
+            # The 'hashkit' commands are now run from the correct directory
             if action == 'list':
                 results = run_hashkit_command(['wordlist', 'list'])
             elif action == 'download':
@@ -125,4 +127,4 @@ def wordlist_management():
             return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=8080)

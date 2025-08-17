@@ -10,11 +10,15 @@ COPY requirements.txt .
 # Install the dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code into the container
+# Create a dedicated directory for writable data and set it as the working directory
+RUN mkdir /app/data && chmod 777 /app/data
+WORKDIR /app/data
+
+# Copy the application code into the new working directory
 COPY . .
 
 # Expose the port the app runs on
-EXPOSE 5000
+EXPOSE 8080
 
 # Set the command to run the Flask application
 CMD ["python", "app.py"]
