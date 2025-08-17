@@ -1,0 +1,78 @@
+# This is a single YAML file containing a Deployment, a Service, and a HorizontalPodAutoscaler.
+# You can apply it all at once using `kubectl apply -f [filename].yaml`.
+
+# --- Deployment: Manages the application pods.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hashkit-deployment
+  labels:
+    app: hashkit-web
+spec:
+  # The initial number of replicas (pods) to run.
+  # The HPA will manage scaling this between 1 and 5.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hashkit-web
+  template:
+    metadata:
+      labels:
+        app: hashkit-web
+    spec:
+      containers:
+      - name: hashkit-container
+        # IMPORTANT: Replace 'your-dockerhub-username' with your actual Docker Hub username.
+        image: fairsy/hashcrakkit
+        ports:
+        - containerPort: 8080
+        # Resource requests are crucial for the HPA to work.
+        # This tells Kubernetes how many resources your app needs.
+        resources:
+          requests:
+            cpu: "250m"  # 0.25 vCPU
+            memory: "256Mi"
+          limits:
+            cpu: "500m"  # 0.5 vCPU
+            memory: "512Mi"
+---
+# --- Service: Exposes the Deployment to the internet.
+# This creates a public IP address (LoadBalancer) that you can access.
+apiVersion: v1
+kind: Service
+metadata:
+  name: hashkit-service
+spec:
+  selector:
+    app: hashkit-web
+  type: LoadBalancer # Use this to get an external IP on cloud providers.
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+---
+# --- Horizontal Pod Autoscaler (HPA): Automatically scales pods.
+# It watches the CPU utilization and scales the number of pods up or down.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hashkit-hpa
+spec:
+  # The target deployment that the HPA will scale.
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: hashkit-deployment
+  # The minimum number of pods to keep running.
+  minReplicas: 1
+  # The maximum number of pods the HPA can scale to.
+  maxReplicas: 5
+  # The metric to watch for scaling decisions.
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      # The target CPU utilization percentage for scaling.
+      target:
+        type: Utilization
+        averageUtilization: 50
